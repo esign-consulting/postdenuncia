@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <title>Post Denúncia</title>
+    <meta name="description" content="Serviço que dispõe de uma série de aplicativos para smartphones para se fazer denúncias.">
+    <meta name="author" content="Esign">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <link rel="shortcut icon" href="./img/icone_postdenuncia_16x16px.jpg">
+    
+    <link rel="stylesheet" type="text/css" href="./css/jquery.dropdown.css" />
+    
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        font: normal .8em arial;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      header {
+        background-color: rgb(126, 188, 198);
+        overflow: hidden;
+      }
+      img {
+        position: absolute;
+        left: 15%;
+        max-width: 70%;
+      }
+      #loginDiv {
+        float: right;
+      }
+      #loginForm, #menuDiv {
+        float: right;
+        clear: both;
+      }
+      form {
+        padding: 4px;
+      }
+      div {
+        padding: 4px;
+      }
+      div * {
+        margin-bottom: 4px;
+      }
+      #loginDiv * {
+        margin-bottom: 2px;
+      }
+      input[type="submit"] {
+        margin-top: 4px;
+      }
+      #termos {
+        display: none;
+        height: 200px;
+        overflow-y: scroll;
+        border: solid 1px rgba(0, 0, 0, .2);
+        border-radius: 6px;
+        color: gray;
+        padding: 10px;
+      }
+      #importDiv #importText {
+        width: 75%;
+        float: left;
+      }
+      #importDiv #importOptions {
+        width: 20%;
+        float: right;
+      }
+      #importOptions * {
+        float: left;
+        margin-right: 4px;
+      }
+      #novoUsuarioForm fieldset {
+        clear: both;
+      }
+      #novoUsuarioForm label {
+        display: inline-block;
+        width: 80px;
+      }
+      #dadosPessoais label {
+        width: 17%;
+      }
+      #dadosPessoais input {
+        width: 78%;
+      }
+      #dadosPessoais #celular {
+        width: 39%;
+      }
+      #senhaEsquecida {
+        width: 300px;
+      }
+      #senhaEsquecidaForm {
+        width: 100%;
+      }
+      #senhaEsquecidaForm label {
+        display: inline-block;
+        width: 17%;
+      }
+      #senhaEsquecidaForm #email {
+        width: 78%;
+      }
+      #senhaEsquecidaForm #celular {
+        width: 39%;
+      }
+      #faleConoscoForm label {
+        display: inline-block;
+        width: 20%;
+      }
+      #faleConoscoForm label[for="mensagem"] {
+        vertical-align: top;
+        margin-top: 5px;
+      }
+      #faleConoscoForm #nome,#email,textarea {
+        width: 75%;
+      }
+      #faleConoscoForm #celular {
+        width: 37.5%;
+      }
+      .example {
+        color: #08C;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+      }
+      .example:after {
+        font-family: Consolas, Courier New, Arial, sans-serif;
+        content: '↓';
+        margin-left: 6px;
+        color: #08C;
+      }
+      .example:hover {
+        background: #F2F2F2;
+      }
+      .example.dropdown-open {
+        background: #888;
+        color: #FFF;
+      }
+      .example.dropdown-open:after {
+        color: #FFF;
+      }
+    </style>
+    
+    <script type="text/javascript">
+      var url = window.location.href;
+      if (url.indexOf("http://www.postdenuncia.com.br") != -1 || url.indexOf("http://postdenuncia.com.br") != -1) {
+        window.location.href = "https://www.postdenuncia.com.br";
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <div id="loginDiv">
+        <form id="loginForm" name="loginForm">
+          <label for="usuario">Usuário:</label>
+          <input type="email" id="usuario" name="usuario" size="35" autofocus>
+          <label for="senha">Senha:</label>
+          <input type="password" id="senha" name="senha">
+          <input type="submit" value="Entrar">
+        </form>
+        <div id="menuDiv">
+          <span id="dropdownButton1" class="example" data-dropdown="#dropdown-1">Ainda não é cadastrado? Cadastre-se aqui!</span>
+          <span id="dropdownButton2" class="example" data-dropdown="#dropdown-2">Esqueceu sua senha?</span>
+          <span id="dropdownButton3" class="example" data-dropdown="#dropdown-3">Fale conosco</span>
+        </div>
+      </div>
+    </header>
+    <img src="./img/logo_postdenuncia_horizontal-01.png">
+    <div id="dropdown-1" class="dropdown dropdown-tip dropdown-anchor-right">
+      <div id="novoUsuario" class="dropdown-panel">
+        <div>
+          <input type="checkbox" id="aceiteTermos" name="aceiteTermos"><label for="aceiteTermos">Li e aceito os </label><a href="javascript:termosToggle();">Termos e Condições</a>
+          <div id="termos">
+            <p><strong>Ao utilizar o presente Aplicativo você está ciente que:</strong></p>
+            <p><strong>1.</strong> Você declara possuir mais de 18 (dezoito) anos de idade.</p>
+            <p><strong>2.</strong> Este aplicativo e seu conteúdo (o "Aplicativo") são de propriedade exclusiva da <strong>ESIGN CONSULTING LTDA, “ESIGN”</strong>, sociedade limitada com sede e foro na Cidade de São Paulo, Estado de São Paulo, na Rua Flórida, 1901 / 241 KB, CEP 04565-001, inscrita no CNPJ/MF sob n° 03.927.865/0001-96. Todos os direitos reservados.</p>
+            <p><strong>3.</strong> Você é exclusivamente responsável por seu uso e navegação e deverá respeitar os <strong>Termos de Uso</strong> e a <strong>Política de Privacidade</strong> deste Aplicativo, bem como a legislação a ele aplicável e as instruções para utilização e envio de imagens.</p>
+            <p><strong>4.</strong> Você poderá participar do Aplicativo, por exemplo, através do <strong>upload de imagens</strong>. Você reconhece, desde já, que é o único responsável pelo teor e conteúdo das imagens que enviar e que a <strong>ESIGN</strong> não tem qualquer ingerência sobre o conteúdo que for postado por você e outros usuários, não se responsabilizando, em nenhuma hipótese, por suas consequências.</p> 
+            <p><strong>5.</strong> Todo e qualquer dano, lesão a direito ou prejuízo gerado pela inserção de imagem ou outros itens por usuários serão de responsabilidade única e exclusiva do usuário que inseriu o item. Os usuários do Aplicativo ficam cientes que responderão administrativa e/ou judicialmente por todo e qualquer dano causado pelos itens (informações, imagens, textos etc) que inserirem no Aplicativo, ficando a <strong>ESIGN</strong> desde já isenta de qualquer tipo de responsabilização administrativa e/ou judicial que eventualmente lhe venha a ser imputada.</p>
+            <p><strong>6.</strong> Você deverá inserir dados no Aplicativo que sejam pertinentes ao objetivo deste. A <strong>ESIGN</strong> reserva-se o direito de moderar e censurar imagens (e qualquer tipo de inserção de dados feita por usuários ou terceiros) que não sejam adequadas aos objetivos do Aplicativo, ou que, ainda, de qualquer forma desrespeitem a moral, a ética, os bons costumes e os direitos de terceiros, bem como a legislação nacional em vigor. Você será o único responsável pelo conteúdo que inserir/compartilhar no aplicativo.</p>
+            <p><strong>7.</strong> São terminantemente proibidas no ambiente desse Aplicativo mensagens, textos, imagens e inserção de qualquer tipo de itens indecorosos, preconceituosos, desrespeitosos, discriminatórios, injuriosos, caluniosos, difamatórios e/ou que, de qualquer forma, atentem contra a dignidade, a imagem, a reputação, a honra, a moral, a integridade ou qualquer outro direito de qualquer pessoa, sua nacionalidade, etnia, preferência política ou religião, bem como que atentem contra a ordem pública, os bons costumes e/ou qualquer norma jurídica vigente e/ou que constituam qualquer espécie de plágio. Os usuários do Aplicativo ficam cientes que responderão administrativa e/ou judicialmente por todo e qualquer dano causado pela infração a estas normas de conduta.</p>
+            <p><strong>8.</strong> As informações publicadas neste Aplicativo são consideradas não-confidenciais. Todos os comentários, sugestões, ideias (incluídas ideias de produtos e publicidade) e outras informações que você postar no Aplicativo passarão a ser propriedade exclusiva da <strong>ESIGN</strong>, incluídos quaisquer direitos futuros relacionados com os referidos envios. Isto significa que você renuncia a qualquer direito de propriedade sobre os referidos envios, reconhecendo o direito irrestrito da <strong>ESIGN</strong> de utilizá-los (assim como materiais ou ideias similares) em qualquer meio, agora e no futuro, sem notificação, remuneração ou qualquer outra obrigação por parte da <strong>ESIGN</strong> para com o usuário.</p> 
+            <p><strong>9.</strong> Qualquer dúvida ou solicitação relacionada ao Aplicativo deverá ser enviada à <strong>ESIGN</strong> através do email <strong>contato@esign.com.br</strong>.</p>          
+          </div>
+        </div>
+        <hr>
+        <form id="novoUsuarioForm" name="novoUsuarioForm">
+          <input type="hidden" id="fbId" name="fbId">
+          <input type="hidden" id="gpId" name="gpId">
+          <div id="importDiv">
+            <span id="importText">Se preferir, importe os dados da sua conta de uma das seguintes redes sociais:</span>
+            <div id="importOptions">
+              <span id="signinButton">
+                <span
+                  class="g-signin"
+                  data-callback="signinCallback"
+                  data-clientid="102285011552-mr1p50nm53f9q978l2tm3gaplpj13r7s.apps.googleusercontent.com"
+                  data-cookiepolicy="single_host_origin"
+                  data-requestvisibleactions="https://schemas.google.com/AddActivity"
+                  data-scope="https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/userinfo.email"
+                  data-height="short"
+                  data-width="iconOnly">
+                </span>
+              </span>
+              <fb:login-button size="icon" scope="email,user_birthday,user_location" onlogin="fbLogin"></fb:login-button>
+            </div>
+          </div>
+          <fieldset id="dadosPessoais">
+            <legend>Dados pessoais</legend>
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" maxlength="45"><br>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" maxlength="45"><br>
+            <label for="celular">Celular:</label>
+            <input type="text" id="celular" name="celular" maxlength="11">
+          </fieldset>
+          <fieldset>
+            <legend>Senha de acesso</legend>
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" name="senha" maxlength="45"><br>
+            <label for="confirmacaoSenha">Confirmação:</label>
+            <input type="password" id="confirmacaoSenha" name="confirmacaoSenha" maxlength="45">
+          </fieldset>
+          <fieldset>
+            <legend>Retorno das denúncias</legend>
+            <input type="checkbox" id="retornoPorEmail" name="retornoPorEmail" checked><label for="retornoPorEmail">Por Email</label>
+            <input type="checkbox" id="retornoPorSMS" name="retornoPorSMS"><label for="retornoPorSMS">Por SMS</label>
+            <input type="checkbox" id="retornoPorPush" name="retornoPorPush"><label for="retornoPorPush">Por Push</label>
+          </fieldset>
+          <input type="submit" value="Enviar">
+        </form>
+      </div>
+    </div>
+    <div id="dropdown-2" class="dropdown dropdown-tip dropdown-anchor-right">
+      <div id="senhaEsquecida" class="dropdown-panel">
+        <div>Informe o email ou o celular registrado</div>
+        <hr>
+        <form id="senhaEsquecidaForm" name="senhaEsquecidaForm">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" maxlength="45"><br>
+          <label for="celular">Celular:</label>
+          <input type="text" id="celular" name="celular" maxlength="11"><br>
+          <input type="submit" value="Enviar">
+        </form>
+      </div>
+    </div>
+    <div id="dropdown-3" class="dropdown dropdown-tip dropdown-anchor-right">
+      <div id="faleConosco" class="dropdown-panel">
+        <div>Informe os dados para contato e a mensagem</div>
+        <hr>
+        <form id="faleConoscoForm" name="faleConoscoForm">
+          <input type="hidden" id="mailto" name="mailto" value="contato@postdenuncia.com.br">
+          <label for="nome">Nome:</label>
+          <input type="text" id="nome" name="nome" maxlength="45"><br>
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" maxlength="45"><br>
+          <label for="celular">Celular:</label>
+          <input type="text" id="celular" name="celular" maxlength="11"><br>
+          <label for="mensagem">Mensagem:</label>
+          <textarea id="mensagem" name="mensagem" maxlength="500" cols="45" rows="5"></textarea><br>
+          <input type="submit" value="Enviar">
+        </form>
+        <hr>
+        <div>Ou envie um email para <a href="mailto:contato@postdenuncia.com.br">contato@postdenuncia.com.br</a></div>
+      </div>
+    </div>
+    <script src="./js/jquery-1.9.1.min.js"></script>
+    <script src="./js/jquery.dropdown.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#loginForm").submit(function() {
+          $.post("./login", $(this).serializeArray(), function(result) {
+            if (result.error) {
+              alert(result.error[0].message);
+              return false;
+            }
+            if (window.location.protocol == "https:") {
+              window.location.href = "https://www.postdenuncia.com.br/main.html";
+            } else {
+              window.location.href = "./main.html";
+            }
+          });
+          return false;
+        });
+        $("input[name='celular']").keyup(function(e) {
+          if (/\D/g.test(this.value)) {
+            this.value = this.value.replace(/\D/g, "");
+          }
+        });
+        $("#novoUsuarioForm").submit(function() {
+          if (!$("#aceiteTermos").is(":checked")) {
+            alert("É preciso ler e aceitar os Termos e Condições.");
+            $("#aceiteTermos").focus();
+            return false;
+          }
+          if ($("#novoUsuarioForm #senha").val() != $("#confirmacaoSenha").val()) {
+            alert("As senhas não são iguais. Por favor, verifique os dados e tente novamente.");
+            $("#confirmacaoSenha").focus();
+            return false;
+          }
+          if ($("#retornoPorSMS").is(":checked") && $("#novoUsuarioForm #celular").val() == "") {
+            alert("Para que o retorno seja enviado por SMS, é necessário informar o celular.");
+            $("#novoUsuarioForm #celular").focus();
+            return false;
+          }
+          $.post("./novousuario", $(this).serializeArray(), function(result) {
+            if (result.error) {
+              alert(result.error[0].message);
+              return false;
+            }
+            var event = jQuery.Event("click");
+            $("#dropdownButton1").trigger(event);
+            alert("Usuário cadastrado com sucesso.");
+            $("#loginForm #usuario").val($("#novoUsuarioForm #email").val());
+            $("#loginForm #senha").val($("#novoUsuarioForm #senha").val());
+            $("#loginForm").submit();
+          });
+          return false;
+        });
+        $("#senhaEsquecidaForm").submit(function() {
+          $.post("./senhaesquecida", $(this).serializeArray(), function(result) {
+            if (result.error) {
+              alert(result.error[0].message);
+              return false;
+            }
+            var event = jQuery.Event("click");
+            $("#dropdownButton2").trigger(event);
+            alert("A senha foi enviada.");
+          });
+          return false;
+        });
+        $("#faleConoscoForm").submit(function() {
+          $.post("./faleconosco", $(this).serializeArray(), function(result) {
+            if (result == "A mensagem foi enviada.") {
+              var event = jQuery.Event("click");
+              $("#dropdownButton3").trigger(event);
+            }
+            alert(result);
+          });
+          return false;
+        });
+        $("#dropdown-1").on("show", function(event, dropdownData) {
+          $("#novoUsuarioForm")[0].reset();
+          $("#aceiteTermos").focus();
+        });
+        $("#dropdown-2").on("show", function(event, dropdownData) {
+          $("#senhaEsquecidaForm")[0].reset();
+          $("#senhaEsquecidaForm #email").focus();
+        });
+        $("#dropdown-3").on("show", function(event, dropdownData) {
+          $("#faleConoscoForm")[0].reset();
+          $("#faleConoscoForm #nome").focus();
+        });
+      });
+      function termosToggle() {
+        $("#termos").toggle("fast");
+      }
+    </script>
+    <div id="fb-root"></div>
+    <script>
+      // Additional JS functions here
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : '491893070866341', // App ID
+          status     : true, // check login status
+          cookie     : true, // enable cookies to allow the server to access the session
+          xfbml      : true, // parse XFBML
+          version    : 'v2.3'
+        });
+        
+        FB.getLoginStatus(function(response) {
+          if (response.status === 'connected') {
+            FB.api('/me?fields=id,name,email,picture,birthday,gender,location,devices,friends.fields(id,name,picture)', function(profile) {
+              var json = JSON.stringify(profile);
+              $.post("./savefbuser", {json: json});
+            });
+          }
+        }, true);
+      };
+      
+      // Load the SDK asynchronously
+      (function(d){
+        var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement('script'); js.id = id; js.async = true;
+        js.src = "//connect.facebook.net/en_US/all.js";
+        ref.parentNode.insertBefore(js, ref);
+        
+        var s = document.getElementsByTagName('script')[0];
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/client:plusone.js';
+        s.parentNode.insertBefore(po, s);
+      }(document));
+      
+      function fbLogin() {
+        FB.api('/me?fields=id,name,email,picture,birthday,gender,location,devices,friends.fields(id,name,picture)', function(profile) {
+          $("#novoUsuarioForm #fbId").val(profile.id);
+          $("#novoUsuarioForm #nome").val(profile.name);
+          $("#novoUsuarioForm #email").val(profile.email);
+          var json = JSON.stringify(profile);
+          $.post("./savefbuser", {json: json});
+        });
+      }
+      
+      function signinCallback(authResult) {
+        if (authResult['access_token']) {
+          gapi.client.load('plus','v1', function() {
+            var request = gapi.client.plus.people.get({
+              'userId': 'me',
+              'fields': 'id,displayName,image,birthday,gender,placesLived'
+            });
+            request.execute(function(resp) {
+              gapi.client.load('oauth2', 'v2', function() {
+                request = gapi.client.oauth2.userinfo.get();
+                request.execute(function(obj) {
+                  if (obj['email']) {
+                    resp.email = obj['email'];
+                    request = gapi.client.plus.people.list({
+                      'userId': 'me',
+                      'collection': 'visible',
+                      'fields': 'items(id,displayName,image)'
+                    });
+                    request.execute(function(list) {
+                      if (list.items) {
+                        resp.people = list.items;
+                      }
+                      $("#novoUsuarioForm #gpId").val(resp.id);
+                      $("#novoUsuarioForm #nome").val(resp.displayName);
+                      $("#novoUsuarioForm #email").val(resp.email);
+                      var json = JSON.stringify(resp);
+                      $.post("./savegplusperson", {json: json});
+                    });
+                  }
+                });
+              });
+            });
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

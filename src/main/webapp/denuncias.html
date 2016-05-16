@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <title>Post Denúncia</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        font: normal .8em arial;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #localizacao {
+        display: none;
+        position: absolute;
+        top: 5px;
+        left: 10%;
+        width: 80%;
+        z-index: 5;
+        background-color: rgba(255, 255, 255, 0);
+        text-align: center;
+      }
+      #map_canvas {
+        height: 100%;
+        width: 100%;
+      }
+      .dinfo {
+        border: 1px solid lightgray;
+      }
+      .foto {
+        max-width: 100%;
+        max-height: 100%;
+      }
+      .tlabel {
+        font-weight: bold;
+        vertical-align: top;
+        text-align: right;
+      }
+    </style>
+    
+    <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCGjihWtdIVD929w4mHQHF_Vtf1qMN1kcg&sensor=false"></script>
+    <script src="./js/jquery-1.9.1.min.js"></script>
+    <script src="./js/date-pt-BR.js"></script>
+    
+    <script type="text/javascript">
+      var map;
+      var markers = [];
+      var paramEmailDenunciante;
+      var paramTiposDenuncia;
+      var paramEstado;
+      var paramCidade;
+      function qs(search_for) {
+        var query = decodeURI(window.location.search.substring(1));
+        var parms = query.split("&");
+        for (var i = 0; i < parms.length; i ++) {
+          var pos = parms[i].indexOf("=");
+          if (pos > 0  && search_for == parms[i].substring(0, pos)) {
+            return parms[i].substring(pos + 1);
+          }
+        }
+        return "";
+      }
+      $(document).ready(function() {
+        var mapOptions = {
+          mapTypeControl: true,
+          mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+          },
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map($("#map_canvas")[0], mapOptions);
+        paramEmailDenunciante = qs("emailDenunciante");
+        paramTiposDenuncia = qs("tiposDenuncia");
+        paramEstado = qs("estado");
+        paramCidade = qs("cidade");
+        $.getJSON("./listacidade", {emailDenunciante: paramEmailDenunciante, tiposDenuncia: paramTiposDenuncia}, function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var cidadesList = result.success;
+          if (cidadesList.length > 1) {
+            var paramCidadeEstado = paramCidade + " - " + paramEstado;
+            $.each(cidadesList, function(i, cidade) {
+              var value = cidade.nome + " - " + cidade.estado.sigla;
+              var option = "<option value='" + value + "'" + ((value == paramCidadeEstado) ? " selected" : "") + ">" + value + "</option>";
+              $("#cidade").append(option);
+            });
+            $("#localizacao").show();
+          }
+        });
+        loadMap();
+      });
+      function loadMap() {
+        if (markers) {
+          for (i in markers) {
+            markers[i].setMap(null);
+          }
+          markers = [];
+        }
+        $.post("./listadenuncia", {emailDenunciante: paramEmailDenunciante, tiposDenuncia: paramTiposDenuncia, estado: paramEstado, cidade: paramCidade}, function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var denunciaList = result.success;
+          if (denunciaList.length > 0) {
+            var bounds = new google.maps.LatLngBounds();
+            $.each(denunciaList, function(i, denuncia) {
+              var latLng = new google.maps.LatLng(denuncia.latitude, denuncia.longitude);
+              var marker = new google.maps.Marker({
+                icon: denuncia.tipo.ponto,
+                map: map,
+                animation: google.maps.Animation.DROP,
+                position: latLng
+              });
+              markers.push(marker);
+              var datahora = new Date(Number(denuncia.datahora));
+              var contentString = "<div><div class='dinfo'><img src=" + denuncia.foto + " class='foto'><table cellspacing='6'><tr><td class='tlabel'>Endereço: </td><td colspan='3'>" + denuncia.endereco + "</td></tr><tr><td class='tlabel'>Data: </td><td>" + datahora.toString("dd/MM/yyyy") + "</td><td class='tlabel'>Hora: </td><td>" + datahora.toString("HH:mm:ss") + "</td></tr>";
+              if (denuncia.orgaoResponsavel) {
+                contentString += "<tr><td class='tlabel'>Órgão: </td><td><a href='" + denuncia.orgaoResponsavel.site + "' target='_blank'>" + denuncia.orgaoResponsavel.sigla + "</a></td><td class='tlabel'>Protocolo: </td><td>" + denuncia.protocolo + "</td></tr>";
+              }
+              contentString += "</table></div></div>";
+              var infowindow = new google.maps.InfoWindow({
+                content: contentString,
+                maxWidth: 300
+              });
+              google.maps.event.addListener(marker, "click", function() {
+                infowindow.open(map, marker);
+              });
+              bounds.extend(latLng);
+            });
+            if (denunciaList.length == 1) {
+              var latLng = new google.maps.LatLng(denunciaList[0].latitude, denunciaList[0].longitude);
+              map.setCenter(latLng);
+              map.setZoom(12);
+            } else {
+              map.fitBounds(bounds);
+            }
+          } else {
+            var brazilLatLng = new google.maps.LatLng(-14.2350040, -51.925280);
+            map.setCenter(brazilLatLng);
+            map.setZoom(4);
+          }
+        });
+      }
+      function updateMap() {
+	    var cidadeEstado = $("#cidade").val().split(" - ");
+	    if (cidadeEstado.length == 2) {
+	      paramCidade = cidadeEstado[0];
+	      paramEstado = cidadeEstado[1];
+	    } else {
+	      paramCidade = "";
+	      paramEstado = "";
+	    }
+	    loadMap();
+	  }
+    </script>
+  </head>
+  <body>
+    <div id="localizacao">
+      <select id="cidade" name="cidade" onchange="updateMap()" autofocus>
+        <option value="">Selecione uma cidade</option>
+      </select>
+    </div>
+    <div id="map_canvas"></div>
+  </body>
+</html>

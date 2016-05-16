@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <title>Post Denúncia</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        font: normal .8em arial;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map_canvas {
+        height: 100%;
+        width: 100%;
+      }
+      h3 {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        display: inline;
+      }
+      .tlabel {
+        font-weight: bold;
+        vertical-align: top;
+        text-align: right;
+        color: #505050;
+      }
+      .linechartDiv {
+        display: none;
+      }
+      .linechartButton {
+        float: left;
+      }
+      .fonte {
+        float: right;
+      }
+    </style>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCGjihWtdIVD929w4mHQHF_Vtf1qMN1kcg&sensor=false"></script>
+    <script src="../js/jquery-1.9.1.min.js"></script>
+    <script src="../js/date-pt-BR.js"></script>
+    <script src="../js/highcharts.js"></script>
+    
+    <script type="text/javascript">
+      var map;
+      var markers = [];
+      var paramEstado;
+      var paramCidade;
+      var paramEndereco;
+      var paramLatitude;
+      var paramLongitude;
+      var paramDatahora;
+      var cores = ["white", "green", "yellow", "orange", "red", "purple", "black"];
+      var letras = ["A", "B", "C", "D", "E"];
+      function qs(search_for) {
+        var query = decodeURI(window.location.search.substring(1));
+        var parms = query.split("&");
+        for (var i = 0; i < parms.length; i ++) {
+          var pos = parms[i].indexOf("=");
+          if (pos > 0  && search_for == parms[i].substring(0, pos)) {
+            return parms[i].substring(pos + 1);
+          }
+        }
+        return "";
+      }
+      $(document).ready(function() {
+        var mapOptions = {
+          mapTypeControl: true,
+          mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+          },
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map($("#map_canvas")[0], mapOptions);
+        paramEstado = qs("estado");
+        paramCidade = qs("cidade");
+        paramEndereco = qs("endereco");
+        paramLatitude = qs("latitude");
+        paramLongitude = qs("longitude");
+        paramUltimaMedicao = qs("ultimaMedicao");
+        paramDatahora = qs("datahora");
+        loadMap();
+      });
+      var estacaoMonitoramentoList;
+      function loadMap() {
+        if (markers) {
+          for (i in markers) {
+            markers[i].setMap(null);
+          }
+          markers = [];
+        }
+        $.post("../listaestacaomonitoramento", {estado: paramEstado, cidade: paramCidade, endereco: paramEndereco, latitude: paramLatitude, longitude: paramLongitude, ultimaMedicao: paramUltimaMedicao, datahora: paramDatahora}, function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var coordenadas = result.success[0].coordenadas;
+          if (coordenadas) {
+        	  paramLatitude = coordenadas.latitude;
+        	  paramLongitude = coordenadas.longitude;
+          }
+          estacaoMonitoramentoList = result.success[0].estacaoMonitoramentoList;
+          if (estacaoMonitoramentoList.length > 0) {
+            var bounds = new google.maps.LatLngBounds();
+            var local = (paramLatitude && paramLongitude);
+            if (local) {
+              var localLatLng = new google.maps.LatLng(paramLatitude, paramLongitude);
+              markers.push(
+                new google.maps.Marker({
+                  icon: "../img/marker/arrow.png",
+                  map: map,
+                  animation: google.maps.Animation.DROP,
+                  position: localLatLng
+                })
+              );
+              bounds.extend(localLatLng);
+            }
+            $.each(estacaoMonitoramentoList, function(i, estacaoMonitoramento) {
+              var iconImg = "../img/marker/";
+              if (estacaoMonitoramento.ultimaMedicao) {
+                iconImg += cores[estacaoMonitoramento.ultimaMedicao.qualidadeAr.numero];
+              } else {
+                iconImg += cores[0];
+              }
+              iconImg += "-";
+              iconImg += (local && i < 5) ? letras[i] : "dot";
+              iconImg += ".png";
+              var latLng = new google.maps.LatLng(estacaoMonitoramento.latitude, estacaoMonitoramento.longitude);
+              var marker = new google.maps.Marker({
+                icon: iconImg,
+                map: map,
+                animation: google.maps.Animation.DROP,
+                position: latLng
+              });
+              markers.push(marker);
+              var contentString = "<div><h3>" + estacaoMonitoramento.nome + "</h3>" + ((estacaoMonitoramento.distancia) ? (" (" + estacaoMonitoramento.distancia.toFixed(2) + " Km)") : "") + "<hr>";
+              if (estacaoMonitoramento.ultimaMedicao) {
+                var datahora = new Date(Number(estacaoMonitoramento.ultimaMedicao.datahora));
+                var classificacao = estacaoMonitoramento.ultimaMedicao.qualidadeAr.classificacao;
+                var indice = estacaoMonitoramento.ultimaMedicao.indice;
+                var poluente = estacaoMonitoramento.ultimaMedicao.poluente;
+                contentString += "<table id='table" + i + "' cellspacing='3'><tr><td class='tlabel'>Data: </td><td>" + datahora.toString("dd/MM/yyyy") + "</td><td class='tlabel'>Hora: </td><td>" + datahora.toString("HH:mm:ss") + "</td></tr><tr><td class='tlabel'>Qualidade: </td><td>" + classificacao + "</td><td class='tlabel'>Índice: </td><td>" + ((indice == null) ? "Não informado" : indice) + "</td></tr><tr><td class='tlabel'>Poluente: </td><td colspan='3'>" + ((poluente) ? (poluente.representacao + " (" + poluente.nome + ")") : "Não informado") + "</td></tr></table>";
+                contentString += "<div id='linechartDiv" + i + "' class='linechartDiv'></div>";
+              } else {
+                contentString += "Dados ainda não obtidos.";
+              }
+              contentString += "<hr><a class='linechartButton myButton' href='javascript:showLineChart(" + i + ");'><img src='../img/line-chart-16.png'/></a><div class='fonte'>Fonte: <a href='" + estacaoMonitoramento.orgaoResponsavel.site + "' target='_blank'>" + estacaoMonitoramento.orgaoResponsavel.sigla + "</a></div></div>";
+              var infowindow = new google.maps.InfoWindow({
+                content: contentString,
+                maxWidth: 300
+              });
+              google.maps.event.addListener(marker, "click", function() {
+                infowindow.open(map, marker);
+              });
+              if ((!local) || (local && i < 5)) {
+                bounds.extend(latLng);
+              }
+            });
+            if (estacaoMonitoramentoList.length == 1) {
+              var latLng = new google.maps.LatLng(estacaoMonitoramentoList[0].latitude, estacaoMonitoramentoList[0].longitude);
+              map.setCenter(latLng);
+              map.setZoom(12);
+            } else {
+              map.fitBounds(bounds);
+            }
+          } else {
+            var brazilLatLng = new google.maps.LatLng(-14.2350040, -51.925280);
+            map.setCenter(brazilLatLng);
+            map.setZoom(4);
+          }
+        });
+      }
+      var ultimasMedicoes = new Object();
+      function showLineChart(i) {
+        if ($('#linechartDiv' + i).is(':visible')) {
+          $('#table' + i).toggle();
+          $('#linechartDiv' + i).toggle();
+        } else {
+          var estacaoMonitoramento = estacaoMonitoramentoList[i];
+          $.post("../qualidadearhistorica", {siglaOrgaoResponsavel: estacaoMonitoramento.orgaoResponsavel.sigla, nomeEstacaoMonitoramento: estacaoMonitoramento.nome}, function(result) {
+            if (result.error) {
+              alert(result.error[0].message);
+              return;
+            }
+            var lineChartData = result.success[0];
+            if (!lineChartData.ultimasMedicoes || lineChartData.ultimasMedicoes.length < 2) {
+              alert('Não há índices históricos suficientes para mostrar.');
+              return;
+            }
+            $('#linechartDiv' + i).width($('#table' + i).width());
+            $('#linechartDiv' + i).height($('#table' + i).height());
+            $('#table' + i).toggle();
+            $('#linechartDiv' + i).toggle();
+            var lineChart = new Highcharts.Chart({
+              chart: {
+                renderTo: 'linechartDiv' + i,
+                marginTop: 0,
+                marginRight: 2,
+                marginBottom: 0,
+                marginLeft: 2
+              },
+              title: {
+                text: null
+              },
+              legend: {
+                enabled: false
+              },
+              xAxis: {
+                labels: {
+                  enabled: false
+                }
+              },
+              yAxis: {
+                id: 'indicesAxis' + i,
+                title: {
+                  text: null
+                },
+                labels: {
+                  enabled: false
+                },
+                min: 0,
+                gridLineWidth: 0,
+                tickInterval: 40
+              },
+              tooltip: {
+                shared: true,
+                useHTML: true,
+                formatter: function() {
+                  var medicao = ultimasMedicoes[i][this.x];
+                  var datahora = new Date(Number(medicao.datahora));
+                  var indice = medicao.indice;
+                  return datahora.toString("dd/MM/yyyy") + "<br>" + datahora.toString("HH:mm:ss") + "<br>IQA: " + indice;
+                }
+              },
+              exporting: {
+                enabled: false
+              },
+              credits: {
+                enabled: false
+              }
+            });
+            var seriesData = new Array();
+            ultimasMedicoes[i] = lineChartData.ultimasMedicoes;
+            $.each(ultimasMedicoes[i], function(i, medicao) {
+              seriesData.push(medicao.indice);
+            });
+            lineChart.addSeries({
+              data: seriesData
+            });
+            var yAxis = lineChart.get('indicesAxis' + i);
+            var cores = ['', 'rgba(0, 255, 0, 0.5)', 'rgba(255, 255, 0, 0.5)', 'rgba(255, 165, 0, 0.5)', 'rgba(255, 0, 0, 0.5)', 'rgba(160, 32, 240, 0.5)', 'rgba(0, 0, 0, 0.5)'];
+            $.each(lineChartData.qualidadesAr, function(i, qualidadeAr) {
+          	  yAxis.addPlotBand ({
+                from: qualidadeAr.indiceMinimo,
+                to: (qualidadeAr.indiceMaximo) ? qualidadeAr.indiceMaximo : qualidadeAr.indiceMinimo + 200,
+                color: cores[qualidadeAr.numero]
+              });
+            });
+          });
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="map_canvas"></div>
+  </body>
+</html>

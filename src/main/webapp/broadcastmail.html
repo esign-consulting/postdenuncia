@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <title>Post Denúncia</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <link rel="shortcut icon" href="./img/icone_postdenuncia_16x16px.jpg">
+    
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        font: normal .8em arial;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      form {
+        padding: 10px;
+      }
+    </style>
+    
+    <script src="./js/jquery-1.9.1.min.js"></script>
+    <script src="./js/jquery.form.js"></script>
+    
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#broadcastmailForm").submit(function() {
+          $.post("./broadcastmail", $(this).serializeArray(), function(result) {
+            alert(result);
+          });
+          return false;
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <form id="broadcastmailForm" name="broadcastmailForm">
+      <label for="subject">Assunto:</label><br>
+      <input type="text" id="subject" name="subject" maxlength="100" size="50"><br>
+      <label for="text">Mensagem:</label><br>
+      <textarea id="text" name="text" rows="10" cols="100"></textarea><br>
+      <input type="submit" value="Enviar">
+    </form>
+  </body>
+</html>

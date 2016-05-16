@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <script src="./js/jquery-1.9.1.min.js"></script>
+    <script src="./js/date-pt-BR.js"></script>
+    <script src="./js/highcharts.js"></script>
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        font: normal .8em arial;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .tlabel {
+        font-weight: bold;
+        vertical-align: top;
+        text-align: right;
+        color: #505050;
+      }
+    </style>
+    <script type="text/javascript">
+      var ultimasMedicoes;
+      $(function () {
+        $.post("./qualidadearhistorica", {siglaOrgaoResponsavel: 'CETESB', nomeEstacaoMonitoramento: 'Osasco'}, function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var lineChartData = result.success[0];
+          var lineChart = new Highcharts.Chart({
+            chart: {
+              renderTo: 'container'
+            },
+            title: {
+              text: null
+            },
+            legend: {
+              enabled: false
+            },
+            xAxis: {
+              labels: {
+                enabled: false
+              }
+            },
+            yAxis: {
+              id: 'indicesAxis',
+              title: {
+                text: null
+              },
+              labels: {
+                enabled: false
+              },
+              min: 0,
+              gridLineWidth: 0,
+              tickInterval: 40
+            },
+            tooltip: {
+              useHTML: true,
+              formatter: function() {
+                var medicao = ultimasMedicoes[this.x];
+                var datahora = new Date(Number(medicao.datahora));
+                var classificacao = medicao.qualidadeAr.classificacao;
+                var indice = medicao.indice;
+                var poluente = medicao.poluente;
+                return "<table cellspacing='3'><tr><td class='tlabel'>Data: </td><td>" + datahora.toString("dd/MM/yyyy") + "</td><td class='tlabel'>Hora: </td><td>" + datahora.toString("HH:mm:ss") + "</td></tr><tr><td class='tlabel'>Qualidade: </td><td>" + classificacao + "</td><td class='tlabel'>Índice: </td><td>" + ((indice == null) ? "Não informado" : indice) + "</td></tr><tr><td class='tlabel'>Poluente: </td><td colspan='3'>" + ((poluente) ? (poluente.representacao + " (" + poluente.nome + ")") : "Não informado") + "</td></tr></table>";
+              }
+            },
+            exporting: {
+              enabled: false
+            },
+            credits: {
+              enabled: false
+            }
+          });
+          var seriesData = new Array();
+          ultimasMedicoes = lineChartData.ultimasMedicoes;
+          $.each(ultimasMedicoes, function(i, medicao) {
+          	seriesData.push(medicao.indice);
+          });
+          lineChart.addSeries({
+            data: seriesData
+          });
+          var yAxis = lineChart.get('indicesAxis');
+          var cores = ['', 'rgba(0, 255, 0, 0.5)', 'rgba(255, 255, 0, 0.5)', 'rgba(255, 165, 0, 0.5)', 'rgba(255, 0, 0, 0.5)', 'rgba(160, 32, 240, 0.5)', 'rgba(0, 0, 0, 0.5)'];
+          $.each(lineChartData.qualidadesAr, function(i, qualidadeAr) {
+          	yAxis.addPlotBand ({
+              from: qualidadeAr.indiceMinimo,
+              to: (qualidadeAr.indiceMaximo) ? qualidadeAr.indiceMaximo : qualidadeAr.indiceMinimo + 200,
+              color: cores[qualidadeAr.numero]
+            });
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div id="container" style="width: 100%; height: 100%;"></div>
+  </body>
+</html>

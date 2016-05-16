@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <title>Post Denúncia</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <link rel="shortcut icon" href="../img/icone_postdenuncia_16x16px.jpg">
+    
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        font: normal .8em arial;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #estacaoMonitoramento {
+        height: 100%;
+        width: 40%;
+        float: left;
+        padding: 8px;
+      }
+      label {
+        display: inline-block;
+        width: 30%;
+      }
+      .radioLabel {
+        margin-left: 4px;
+        width: 450px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: .9em;
+      }
+      input[type="text"] {
+        width: 68%;
+      }
+      input[type="radio"] {
+        margin-top: 8px;
+      }
+      #coordenadasUTM {
+        height: 100%;
+        width: 45%;
+        float: right;
+      }
+      #coordenadasDec {
+        height: 100%;
+        width: 45%;
+        float: left;
+      }
+      #enderecoFieldset {
+        clear: both;
+      }
+      #map_content {
+        height: 100%;
+        width: 58%;
+        float: right;
+      }
+      #mapSelector {
+        position: absolute;
+        top: 20px;
+        left: 60%;
+        width: 300px;
+        z-index: 5;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 5px;
+        border: 1px solid #999;
+      }
+      #mapSelector label {
+        display: inline-block;
+        width: 18%;
+      }
+      #map_canvas {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    
+    <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCGjihWtdIVD929w4mHQHF_Vtf1qMN1kcg&sensor=false"></script>
+    <script src="../js/jquery-1.9.1.min.js"></script>
+    <script src="../js/jquery.form.js"></script>
+    
+    <script type="text/javascript">
+      var estacaoMonitoramentoList;
+      var brazilLatLng = new google.maps.LatLng(-14.2350040, -51.925280);
+      var map;
+      var markers = [];
+      $(document).ready(function() {
+        $.getJSON("../listaorgaoresponsavel", function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var orgaosResponsaveisList = result.success;
+          $.each(orgaosResponsaveisList, function(i, orgaoResponsavel) {
+            var option = "<option value='" + orgaoResponsavel.sigla + "'>" + orgaoResponsavel.sigla + "</option>";
+            $("#siglaOrgaoResponsavel").append(option);
+          });
+        });
+        $.getJSON("../listaestado", function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var estadosList = result.success;
+          $.each(estadosList, function(i, estado) {
+            var option = "<option value='" + estado.sigla + "'>" + estado.nome + "</option>";
+            $("#siglaEstado").append(option);
+          });
+        });
+        $("#googleMaps").click(function() {
+          $.getJSON("../googlemaps", {address: encodeURI($("#endereco").val())}, function(data) {
+            if (data.status == "ZERO_RESULTS") {
+              alert("Localização não encontrada.");
+            } else if (data.status == "OK") {
+              $("#googleMapsResult").empty();
+              $.each(data.results, function(i, result) {
+                var r = "<input type='radio' name='enderecoIndex' value='" + i + "'" + ((i == 0) ? " checked" : "") + " id='endereco" + i + "'><label for='endereco" + i + "' class='radioLabel'>" +  result.formatted_address + "</label><br>";
+                $("#googleMapsResult").append(r);
+              });
+            }
+          });
+          return false;
+        });
+        $("#estacaoMonitoramentoForm").submit(function() {
+          $.post("../salvaestacaomonitoramento", $(this).serializeArray(), function(result) {
+            if (result.error) {
+              alert(result.error[0].message);
+              return false;
+            }
+            reset();
+            // mensagem
+            var estacao = result.success[0];
+            alert("Estação de Monitoramento '" + estacao.nome + "' salva com sucesso.");
+          });
+          return false;
+        });
+        $("#resetButton").click(function() {
+          reset();
+        });
+        var mapOptions = {
+          zoom: 4,
+          center: brazilLatLng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map($("#map_canvas")[0], mapOptions);
+      });
+      function reset() {
+	    $("#estacaoMonitoramentoForm")[0].reset();
+        $("#siglaOrgaoResponsavel").focus();
+        $("#googleMapsResult").empty();
+	  }
+      function updateMap() {
+	    var paramEstado = $("#siglaEstado").val();
+	    estacaoMonitoramentoList = null;
+	    $("#nomeEstacao").empty();
+	    if (markers) {
+          for (i in markers) {
+            markers[i].setMap(null);
+          }
+          markers = [];
+        }
+	    $.post("../listaestacaomonitoramento", {estado: paramEstado, ultimaMedicao: "isenta"}, function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          estacaoMonitoramentoList = result.success[0].estacaoMonitoramentoList;
+          if (estacaoMonitoramentoList.length > 0) {
+            var bounds = new google.maps.LatLngBounds();
+            $("#nomeEstacao").append("<option value=''>Selecione uma estação</option>");
+            $.each(estacaoMonitoramentoList, function(i, estacaoMonitoramento) {
+              var option = "<option value='" + i + "'>" + estacaoMonitoramento.nome + "</option>";
+              $("#nomeEstacao").append(option);
+              var latLng = new google.maps.LatLng(estacaoMonitoramento.latitude, estacaoMonitoramento.longitude);
+              var marker = new google.maps.Marker({
+                icon: "../img/marker/blue-pushpin.png",
+                map: map,
+                draggable: true,
+                animation: google.maps.Animation.DROP,
+                position: latLng
+              });
+              google.maps.event.addListener(marker, "position_changed", function() {
+                $("#decLatitude").val(marker.getPosition().lat());
+                $("#decLongitude").val(marker.getPosition().lng());
+              });
+              markers.push(marker);
+              bounds.extend(latLng);
+            });
+            if (estacaoMonitoramentoList.length == 1) {
+              var latLng = new google.maps.LatLng(estacaoMonitoramentoList[0].latitude, estacaoMonitoramentoList[0].longitude);
+              map.setCenter(latLng);
+              map.setZoom(12);
+            } else {
+              map.fitBounds(bounds);
+            }
+          } else {
+            map.setCenter(brazilLatLng);
+            map.setZoom(4);
+          }
+        });
+	  }
+	  function selectEstacao() {
+	    var index = $("#nomeEstacao").val();
+	    if (!isNaN(index)) {
+	      var estacao = estacaoMonitoramentoList[index];
+	      var latLng = new google.maps.LatLng(estacao.latitude, estacao.longitude);
+	      map.setCenter(latLng);
+          map.setZoom(18);
+          reset();
+          $("#siglaOrgaoResponsavel").val(estacao.orgaoResponsavel.sigla);
+          $("#nome").val(estacao.nome);
+          $("#decLatitude").val(estacao.latitude);
+          $("#decLongitude").val(estacao.longitude);
+        }
+	  }
+    </script>
+  </head>
+  <body>
+    <div id="estacaoMonitoramento">
+      <form id="estacaoMonitoramentoForm" name="estacaoMonitoramentoForm">
+        <label for="siglaOrgaoResponsavel">Órgão Resposável:</label>
+        <select id="siglaOrgaoResponsavel" name="siglaOrgaoResponsavel" autofocus>
+          <option value="">Selecione</option>
+        </select><br>
+        <label for="nome">Estação de Monitoramento:</label>
+        <input type="text" id="nome" name="nome" maxlength="45" size="45"><br>
+        <fieldset id="localizacaoFieldset">
+          <legend>Localização</legend>
+          <div id="coordenadas">
+            <fieldset id="coordenadasUTM">
+              <legend>UTM</legend>
+              <label for="utmLatitude">Latitude:</label><input type="text" id="utmLatitude" name="utmLatitude"><br>
+              <label for="utmLongitude">Longitude:</label><input type="text" id="utmLongitude" name="utmLongitude"><br>
+              <label for="utmZona">Zona:</label><input type="text" id="utmZona" name="utmZona" maxlength="5" size="3">
+            </fieldset>
+            <fieldset id="coordenadasDec">
+              <legend>Decimais</legend>
+              <label for="decLatitude">Latitude:</label><input type="text" id="decLatitude" name="decLatitude"><br>
+              <label for="decLongitude">Longitude:</label><input type="text" id="decLongitude" name="decLongitude"><br>
+            </fieldset>
+          </div>
+          <fieldset id="enderecoFieldset">
+            <legend>Endereço</legend>
+            <input type="text" id="endereco" name="endereco" maxlength="180" size="60"><button id="googleMaps">Google Maps</button>
+            <div id="googleMapsResult"></div>
+          </fieldset>
+        </fieldset>
+        <input type="reset" id="resetButton" value="Limpar">
+        <input type="submit" id="submitButton" value="Salvar">
+      </form>
+    </div>
+    <div id="map_content">
+      <div id="mapSelector">
+        <label for="siglaEstado">Estado:</label>
+        <select id="siglaEstado" name="siglaEstado" onchange="updateMap()">
+          <option value="">Selecione um estado</option>
+        </select><br>
+        <label for="nomeEstacao">Estação:</label>
+        <select id="nomeEstacao" name="nomeEstacao" onchange="selectEstacao()"></select>
+      </div>
+      <div id="map_canvas"></div>
+    </div>
+  </body>
+</html>

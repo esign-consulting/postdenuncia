@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <title>Post Denúncia</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <link rel="shortcut icon" href="./img/icone_postdenuncia_16x16px.jpg">
+    
+    <link rel="stylesheet" type="text/css" href="./css/smoothness/jquery-ui-1.10.3.custom.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/jquery-ui-timepicker-addon.css">
+    
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        font: normal .8em arial;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      header {
+        background-color: rgb(126, 188, 198);
+        overflow: hidden;
+      }
+      #logoutForm {
+        float: right;
+        padding: 5px;
+      }
+      #novaDenuncia {
+        height: 100%;
+        width: 20%;
+        float: left;
+        padding: 8px;
+      }
+      fieldset {
+        padding: 8px;
+      }
+      #novaDenunciaForm label {
+        display: inline-block;
+        width: 30%;
+      }
+      #map_content {
+        height: 100%;
+        width: 78%;
+        float: right;
+      }
+      #localizacao {
+        position: absolute;
+        top: 40px;
+        left: 50%;
+        width: 260px;
+        z-index: 5;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 5px;
+        border: 1px solid #999;
+      }
+      #map_canvas {
+        height: 100%;
+        width: 100%;
+      }
+      .dinfo {
+        border: 1px solid lightgray;
+      }
+      .foto {
+        max-width: 100%;
+        max-height: 100%;
+      }
+      .tlabel {
+        font-weight: bold;
+        vertical-align: top;
+        text-align: right;
+      }
+    </style>
+    
+    <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCGjihWtdIVD929w4mHQHF_Vtf1qMN1kcg&sensor=false"></script>
+    <script src="./js/jquery-1.9.1.min.js"></script>
+    <script src="./js/jquery-ui-1.10.3.custom.min.js"></script>
+    <script src="./js/jquery-ui-timepicker-addon.js"></script>
+    <script src="./js/jquery.form.js"></script>
+    <script src="./js/date-pt-BR.js"></script>
+    <script src="./js/cidades-estados-utf8.js"></script>
+    
+    <script type="text/javascript">
+      var brazilLatLng = new google.maps.LatLng(-14.2350040, -51.925280);
+      var geocoder;
+      var map;
+      var markers = [];
+      $(document).ready(function() {
+        $.getJSON("./usuariologado", function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var denunciante = result.success[0];
+          $("#welcome").text("Seja bem vindo, " + denunciante.nome + "!");
+        });
+        $("#logoutForm").submit(function() {
+          $.post("./logout", $(this).serializeArray(), function(result) {
+            if (result.error) {
+              alert(result.error[0].message);
+              return false;
+            }
+            window.location = "./index.html";
+          });
+          return false;
+        });
+        $.getJSON("./listatipodenuncia", function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var tipoDenunciaList = result.success;
+          $.each(tipoDenunciaList, function(i, tipoDenuncia) {
+            var option = "<option value='" + tipoDenuncia.codigo + "'>" + tipoDenuncia.nome + "</option>";
+            $("#codigoTipoDenuncia").append(option);
+          });
+        });
+        $(".datahora").datetimepicker({
+          dateFormat: 'dd/mm/yy',
+          dayNames: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
+          dayNamesMin: ['D','S','T','Q','Q','S','S','D'],
+          dayNamesShort: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],
+          monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+          monthNamesShort: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+          nextText: 'Próximo',
+          prevText: 'Anterior',
+          showOtherMonths: true,
+          selectOtherMonths: true,
+          changeMonth: true,
+          changeYear: true,
+          showOn: "button",
+          buttonImage: "./img/calendar.gif",
+          buttonImageOnly: true,
+          timeFormat: "HH:mm:ss",
+          timeOnlyTitle: "Hora",
+          timeText: "",
+          hourText: "Hora",
+	      minuteText: "Minuto",
+	      secondText: "Segundo",
+	      currentText: "Agora",
+	      closeText: "Fechar"
+        });
+        $("#datahora").val(Date.now().toString("dd/MM/yyyy HH:mm:ss"));
+        $("#novaDenunciaForm").ajaxForm({dataType: "json", success: processJson});
+        $(function() {
+          new dgCidadesEstados({
+            estado: $("#estado").get(0),
+            cidade: $("#cidade").get(0)
+          });
+        });
+        geocoder = new google.maps.Geocoder();
+        var mapOptions = {
+          zoom: 4,
+          center: brazilLatLng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map($("#map_canvas")[0], mapOptions);
+        google.maps.event.addListener(map, "click", function(event) {
+          if (markers) {
+            for (i in markers) {
+              markers[i].setMap(null);
+            }
+            markers = [];
+          }
+          var marker = new google.maps.Marker({
+            map: map,
+            draggable: true,
+            animation: google.maps.Animation.DROP,
+            position: event.latLng
+          });
+          markers.push(marker);
+          $("#latitude").val(event.latLng.lat());
+          $("#longitude").val(event.latLng.lng());
+          google.maps.event.addListener(marker, "position_changed", function() {
+            $("#latitude").val(marker.getPosition().lat());
+            $("#longitude").val(marker.getPosition().lng());
+          });
+        });
+      });
+      function processJson(result) {
+        if (result.error) {
+          alert(result.error[0].message);
+          return;
+        }
+        var denuncia = result.success[0];
+        if (markers) {
+          for (i in markers) {
+            markers[i].setMap(null);
+          }
+          markers = [];
+        }
+        var latLng = new google.maps.LatLng(denuncia.latitude, denuncia.longitude);
+        var marker = new google.maps.Marker({
+          icon: denuncia.tipo.ponto,
+          map: map,
+          animation: google.maps.Animation.DROP,
+          position: latLng
+        });
+        markers.push(marker);
+        var datahora = new Date(Number(denuncia.datahora));
+        var contentString = "<div><h3>" + denuncia.tipo.nome + "</h3><div class='dinfo'><img src=" + denuncia.foto + " class='foto'><table cellspacing='6'><tr><td class='tlabel'>Endereço: </td><td colspan='3'>" + denuncia.endereco + "</td></tr><tr><td class='tlabel'>Data: </td><td>" + datahora.toString("dd/MM/yyyy") + "</td><td class='tlabel'>Hora: </td><td>" + datahora.toString("HH:mm:ss") + "</td></tr></table></div></div>";
+        var infowindow = new google.maps.InfoWindow({
+          content: contentString,
+          maxWidth: 300
+        });
+        google.maps.event.addListener(marker, "click", function() {
+          infowindow.open(map, marker);
+        });
+        map.setCenter(latLng);
+        map.setZoom(12);
+	  }
+	  function updateMap() {
+	    var address = $("#cidade").val() + " - " + $("#estado").val();
+	    if (address != "") {
+          geocoder.geocode({"address": address}, function(results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+              map.fitBounds(results[0].geometry.bounds);
+            } else {
+              alert("Geocode was not successful for the following reason: " + status);
+            }
+          });
+        }
+	  }
+    </script>
+  </head>
+  <body>
+    <header>
+      <form id="logoutForm" name="logoutForm">
+        <label id="welcome"></label>
+        <input type="submit" value="Sair">
+      </form>
+    </header>
+    <div id="novaDenuncia">
+      <form id="novaDenunciaForm" name="novaDenunciaForm" action="./novadenuncia" method="POST" enctype="multipart/form-data">
+        <label for="codigoTipoDenuncia">Tipo de Denúncia:</label>
+        <select id="codigoTipoDenuncia" name="codigoTipoDenuncia" autofocus></select><br>
+        <label for="datahora">Data/Hora:</label>
+        <input type="datetime" id="datahora" name="datahora" class="datahora">
+        <fieldset>
+          <legend>Coordenadas</legend>
+          <label for="latitude">Latitude:</label>
+          <input type="text" id="latitude" name="latitude"><br>
+          <label for="longitude">Longitude:</label>
+          <input type="text" id="longitude" name="longitude">
+        </fieldset>
+        <label for="foto">Foto:</label>
+        <input type="file" id="foto" name="foto"><br>
+        <label for="infoAdicional">Informação adicional:</label>
+        <input type="text" id="infoAdicional" name="infoAdicional"><br>
+        <input type="checkbox" id="retorno" name="retorno"><label for="retorno">Retorno</label><br>
+        <input type="submit" value="Salvar">
+      </form>
+    </div>
+    <div id="map_content">
+      <div id="localizacao">
+        <label for="estado" class="localizacaoLabel">Estado:</label>
+        <select id="estado" name="estado" onchange="updateMap()"></select><br>
+        <label for="cidade" class="localizacaoLabel">Cidade:</label>
+        <select id="cidade" name="cidade" onchange="updateMap()"></select>
+      </div>
+      <div id="map_canvas"></div>
+    </div>
+  </body>
+</html>

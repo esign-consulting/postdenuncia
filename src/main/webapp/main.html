@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <title>Post Denúncia</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <meta name="description" content="Serviço que dispõe de uma série de aplicativos para smartphones para se fazer denúncias.">
+    <meta name="author" content="Esign">
+    <link rel="shortcut icon" href="./img/icone_postdenuncia_16x16px.jpg">
+    
+    <link rel="stylesheet" type="text/css" href="./css/jquery.dropdown.css" />
+    <link rel="stylesheet" type="text/css" href="./css/smoothness/jquery-ui-1.10.3.custom.min.css">
+    
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        font: normal .8em arial;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-y: hidden;
+        overflow-x: hidden;
+      }
+      header {
+        background-color: rgb(126, 188, 198);
+        overflow: hidden;
+      }
+      #logoutDiv {
+        float: right;
+        padding: 4px;
+      }
+      #logoutDiv * {
+        margin-bottom: 2px;
+      }
+      #logoutForm, #menuDiv {
+        float: right;
+        clear: both;
+      }
+      .mydiv {
+        padding: 4px;
+      }
+      .mydiv * {
+        margin-bottom: 4px;
+      }
+      form {
+        padding: 4px;
+      }
+      .ui-datepicker-trigger {
+        position: relative;
+        top: 6px;
+      }
+      input[type="submit"] {
+        margin-top: 4px;
+      }
+      #usuarioForm label {
+        display: inline-block;
+        width: 80px;
+      }
+      #dadosPessoais label {
+        width: 17%;
+      }
+      #dadosPessoais input {
+        width: 78%;
+      }
+      #dadosPessoais #celular {
+        width: 39%;
+      }
+      #faleConoscoForm label {
+        display: inline-block;
+        width: 20%;
+      }
+      #faleConoscoForm label[for="mensagem"] {
+        vertical-align: top;
+        margin-top: 5px;
+      }
+      #faleConoscoForm #nome,#email,textarea {
+        width: 75%;
+      }
+      #faleConoscoForm #celular {
+        width: 37.5%;
+      }
+      h3 {
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      #ui-datepicker-div {
+        z-index: 9999999 !important;
+      }
+      .periodoLabel {
+        display: inline-block;
+        width: 28%;
+      }
+      .tipoDenunciaLabel {
+        display: inline-block;
+        width: 90%;
+      }
+      .localizacaoLabel {
+        display: inline-block;
+        width: 20%;
+      }
+      #localizacao {
+        width: 270px;
+      }
+      #map_content {
+        position: absolute;
+        top: 68px;
+        bottom: 0px;
+        width: 100%;
+      }
+      #map_canvas {
+        height: 100%;
+        width: 100%;
+      }
+      .infowindowContent {
+        max-width: 500px;
+        max-height: 500px;
+      }
+      .dinfo {
+        border: 1px solid lightgray;
+      }
+      .foto {
+        max-width: 298px;
+        max-height: 100%;
+      }
+      .tlabel {
+        font-weight: bold;
+        vertical-align: top;
+        text-align: right;
+      }
+      #legend {
+        margin-right: 10px;
+        border: 1px solid lightgray;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 8px;
+      }
+      .example {
+        color: #08C;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+      }
+      .example:after {
+        font-family: Consolas, Courier New, Arial, sans-serif;
+        content: '↓';
+        margin-left: 6px;
+        color: #08C;
+      }
+      .example:hover {
+        background: #F2F2F2;
+      }
+      .example.dropdown-open {
+        background: #888;
+        color: #FFF;
+      }
+      .example.dropdown-open:after {
+        color: #FFF;
+      }
+    </style>
+    <script type="text/javascript">
+      if (window.location.href.indexOf("http://www.postdenuncia.com.br/main.html") != -1) {
+        window.location.href = "https://www.postdenuncia.com.br/main.html";
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <div id="logoutDiv">
+        <form id="logoutForm" name="logoutForm">
+          <label id="welcome"></label>
+          <input type="submit" value="Sair">
+        </form>
+        <div id="menuDiv" class="mydiv">
+          <span id="dropdownButton1" class="example" data-dropdown="#dropdown-1">Seu perfil</span>
+          <span id="dropdownButton2" class="example" data-dropdown="#dropdown-2">Veja as denúncias feitas por você</span>
+          <span id="dropdownButton3" class="example" data-dropdown="#dropdown-3">Fale conosco</span>
+        </div>
+      </div>
+    </header>
+    <div id="map_content">
+      <div id="map_canvas"></div>
+      <div id="legend" hidden="true"><h3>Legenda</h3></div>
+    </div>
+    <div id="dropdown-1" class="mydiv dropdown dropdown-tip dropdown-anchor-right">
+      <div id="usuario" class="mydiv dropdown-panel">
+        <form id="usuarioForm" name="novoUsuarioForm">
+          <fieldset id="dadosPessoais">
+            <legend>Dados pessoais</legend>
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" maxlength="45" size="45"><br>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" maxlength="45" size="45"><br>
+            <label for="celular">Celular:</label>
+            <input type="text" id="celular" name="celular" maxlength="11">
+          </fieldset>
+          <fieldset>
+            <legend>Senha de acesso</legend>
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" name="senha" maxlength="45"><br>
+            <label for="confirmacaoSenha">Confirmação:</label>
+            <input type="password" id="confirmacaoSenha" name="confirmacaoSenha" maxlength="45">
+          </fieldset>
+          <fieldset>
+            <legend>Retorno das denúncias</legend>
+            <input type="checkbox" id="retornoPorEmail" name="retornoPorEmail"><label for="retornoPorEmail">Por Email</label>
+            <input type="checkbox" id="retornoPorSMS" name="retornoPorSMS"><label for="retornoPorSMS">Por SMS</label>
+            <input type="checkbox" id="retornoPorPush" name="retornoPorPush"><label for="retornoPorPush">Por Push</label>
+          </fieldset>
+          <input type="submit" value="Salvar">
+        </form>
+      </div>
+    </div>
+    <div id="dropdown-2" class="mydiv dropdown dropdown-tip dropdown-anchor-right">
+      <div id="map_filter" class="mydiv dropdown-panel">
+        <form id="mapFilterForm" name="mapFilterForm">
+          <fieldset>
+            <legend>Período</legend>
+            <label for="dataInicial" class="periodoLabel">Data inicial:</label>
+            <input type="text" id="dataInicial" name="dataInicial" class="data" maxlength="10" size="12"><br>
+            <label for="dataFinal" class="periodoLabel">Data final:</label>
+            <input type="text" id="dataFinal" name="dataFinal" class="data" maxlength="10" size="12">
+          </fieldset>
+          <fieldset>
+            <legend>Tipos de Denúncia</legend>
+            <div id="tiposDenunciaDiv"></div>
+          </fieldset>
+          <fieldset id="localizacao">
+            <legend>Localização</legend>
+            <label for="estado" class="localizacaoLabel">Estado:</label>
+            <select id="estado" name="estado"></select><br>
+            <label for="cidade" class="localizacaoLabel">Cidade:</label>
+            <select id="cidade" name="cidade"></select>
+          </fieldset>
+          <input type="submit" value="Pesquisar">
+        </form>
+      </div>
+    </div>
+    <div id="dropdown-3" class="mydiv dropdown dropdown-tip dropdown-anchor-right">
+      <div id="faleConosco" class="mydiv dropdown-panel">
+        <div>Informe a mensagem</div>
+        <hr>
+        <form id="faleConoscoForm" name="faleConoscoForm">
+          <input type="hidden" id="mailto" name="mailto" value="suporte@postdenuncia.com.br">
+          <label for="nome">Nome:</label>
+          <input type="text" id="nome" name="nome" maxlength="45" readonly><br>
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" maxlength="45" readonly><br>
+          <label for="celular">Celular:</label>
+          <input type="text" id="celular" name="celular" maxlength="11" readonly><br>
+          <label for="mensagem">Mensagem:</label>
+          <textarea id="mensagem" name="mensagem" maxlength="500" cols="45" rows="5"></textarea><br>
+          <input type="submit" value="Enviar">
+        </form>
+        <hr>
+        <div>Ou envie um email para <a href="mailto:suporte@postdenuncia.com.br">suporte@postdenuncia.com.br</a></div>
+      </div>
+    </div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCGjihWtdIVD929w4mHQHF_Vtf1qMN1kcg&sensor=false"></script>
+    <script src="./js/jquery-1.9.1.min.js"></script>
+    <script src="./js/jquery.dropdown.js"></script>
+    <script src="./js/jquery-ui-1.10.3.custom.min.js"></script>
+    <script src="./js/date-pt-BR.js"></script>
+    <script src="./js/cidades-estados-utf8.js"></script>
+    <script type="text/javascript">
+      var brazilLatLng = new google.maps.LatLng(-14.2350040, -51.925280);
+      var map;
+      var markers = [];
+      var lDivs = new Object();
+      $(document).ready(function() {
+        $.getJSON("./usuariologado", function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var denunciante = result.success[0];
+          if (denunciante.facebookUser) {
+            $("#logoutDiv").append("<img src='" + denunciante.facebookUser.picture + "'>");
+            $("#welcome").text("Seja bem vind" + ((denunciante.facebookUser.gender == "male") ? "o" : "a") + ", " + denunciante.nome + "!");
+          } else if (denunciante.googlePlusPerson) {
+            $("#logoutDiv").append("<img src='" + denunciante.googlePlusPerson.picture + "'>");
+            $("#welcome").text("Seja bem vind" + ((denunciante.googlePlusPerson.gender == "male") ? "o" : "a") + ", " + denunciante.nome + "!");
+          } else {
+            $("#welcome").text("Seja bem vindo(a), " + denunciante.nome + "!");
+          }
+          $("#usuarioForm #nome").val(denunciante.nome);
+          $("#usuarioForm #email").val(denunciante.email);
+          $("#usuarioForm #celular").val(denunciante.celular);
+          $("#faleConoscoForm #nome").val(denunciante.nome);
+          $("#faleConoscoForm #email").val(denunciante.email);
+          $("#faleConoscoForm #celular").val(denunciante.celular);
+          $("#retornoPorEmail").attr("checked", denunciante.retornoPorEmail);
+          $("#retornoPorSMS").attr("checked", denunciante.retornoPorSMS);
+          $("#retornoPorPush").attr("checked", denunciante.retornoPorPush);
+        });
+        $("#dropdown-1").on("show", function(event, dropdownData) {
+          $("#usuarioForm #nome").focus();
+        });
+        $("#dropdown-2").on("show", function(event, dropdownData) {
+          $("#dataInicial").focus();
+        });
+        $("#dropdown-3").on("show", function(event, dropdownData) {
+          $("#mensagem").focus();
+        });
+        $("#logoutForm").submit(function() {
+          $.post("./logout", $(this).serializeArray(), function(result) {
+            if (result.error) {
+              alert(result.error[0].message);
+              return false;
+            }
+            if (window.location.protocol == "https:") {
+              window.location.href = "https://www.postdenuncia.com.br/index.html";
+            } else {
+              window.location.href = "./index.html";
+            }
+          });
+          return false;
+        });
+        $("input[name='celular']").keyup(function(e) {
+          if (/\D/g.test(this.value)) {
+            this.value = this.value.replace(/\D/g, "");
+          }
+        });
+        $("#usuarioForm").submit(function() {
+          if ($("#senha").val() != $("#confirmacaoSenha").val()) {
+            alert("As senhas não são iguais. Por favor, verifique os dados e tente novamente.");
+            $("#confirmacaoSenha").focus();
+            return false;
+          }
+          if ($("#retornoPorSMS").is(":checked") && $("#celular").val() == "") {
+            alert("Para que o retorno seja enviado por SMS, é necessário informar o celular.");
+            $("#celular").focus();
+            return false;
+          }
+          $.post("./salvausuario", $(this).serializeArray(), function(result) {
+            if (result.error) {
+              alert(result.error[0].message);
+              return false;
+            }
+            var denunciante = result.success[0];
+            if (denunciante.facebookUser) {
+              $("#welcome").text("Seja bem vind" + ((denunciante.facebookUser.gender == "male") ? "o" : "a") + ", " + denunciante.nome + "!");
+            } else if (denunciante.googlePlusPerson) {
+              $("#welcome").text("Seja bem vind" + ((denunciante.googlePlusPerson.gender == "male") ? "o" : "a") + ", " + denunciante.nome + "!");
+            } else {
+              $("#welcome").text("Seja bem vindo(a), " + denunciante.nome + "!");
+            }
+            $("#faleConoscoForm #nome").val(denunciante.nome);
+            $("#faleConoscoForm #email").val(denunciante.email);
+            $("#faleConoscoForm #celular").val(denunciante.celular);
+            var event = jQuery.Event("click");
+            $("#dropdownButton1").trigger(event);
+            alert("Os dados foram salvos com sucesso.");
+          });
+          return false;
+        });
+        $("#faleConoscoForm").submit(function() {
+          $.post("./faleconosco", $(this).serializeArray(), function(result) {
+            if (result == "A mensagem foi enviada.") {
+              var event = jQuery.Event("click");
+              $("#dropdownButton3").trigger(event);
+            }
+            alert(result);
+          });
+          return false;
+        });
+        $(".data").datepicker({
+          dateFormat: 'dd/mm/yy',
+          dayNames: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
+          dayNamesMin: ['D','S','T','Q','Q','S','S','D'],
+          dayNamesShort: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],
+          monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+          monthNamesShort: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+          nextText: 'Próximo',
+          prevText: 'Anterior',
+          showOtherMonths: true,
+          selectOtherMonths: true,
+          changeMonth: true,
+          changeYear: true,
+          showOn: "button",
+          buttonImageOnly: true,
+          buttonImage: "./img/calendar.gif",
+          buttonText: "Calendário"
+        });
+        $("#dataInicial").val(Date.today().add(-1).weeks().toString("dd/MM/yyyy"));
+        $("#dataFinal").val(Date.today().toString("dd/MM/yyyy"));
+        $.getJSON("./listatipodenuncia", function(result) {
+          if (result.error) {
+            alert(result.error[0].message);
+            return;
+          }
+          var tipoDenunciaList = result.success;
+          $.each(tipoDenunciaList, function(i, tipoDenuncia) {
+            var checkbox = "<input type='checkbox' name='tiposDenuncia' id='post" + tipoDenuncia.codigo + "' value='" + tipoDenuncia.codigo + "'>";
+            var label = "<label for='post" + tipoDenuncia.codigo + "' class='tipoDenunciaLabel'>" + tipoDenuncia.nome + "</label><br>";
+            $("#tiposDenunciaDiv").append(checkbox + label);
+          });
+        });
+        $(function() {
+          new dgCidadesEstados({
+            estado: $("#estado").get(0),
+            cidade: $("#cidade").get(0)
+          });
+        });
+        var mapOptions = {
+          zoom: 4,
+          center: brazilLatLng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map($("#map_canvas")[0], mapOptions);
+        $("#mapFilterForm").submit(function() {
+          if (markers) {
+            for (i in markers) {
+              markers[i].setMap(null);
+            }
+            markers = [];
+          }
+          $.post("./listadenuncia", $(this).serializeArray(), function(result) {
+            if (result.error) {
+              alert(result.error[0].message);
+              return false;
+            }
+            var denunciaList = result.success;
+            if (denunciaList.length > 0) {
+              var bounds = new google.maps.LatLngBounds();
+              $.each(denunciaList, function(i, denuncia) {
+                var latLng = new google.maps.LatLng(denuncia.latitude, denuncia.longitude);
+                var marker = new google.maps.Marker({
+                  icon: denuncia.tipo.ponto,
+                  map: map,
+                  animation: google.maps.Animation.DROP,
+                  position: latLng
+                });
+                markers.push(marker);
+                var datahora = new Date(Number(denuncia.datahora));
+                var contentString = "<div class='infowindowContent'><h3>" + denuncia.tipo.nome + "</h3><div class='dinfo'><img src='" + denuncia.foto + "' class='foto'><table cellspacing='6'><tr><td class='tlabel'>Endereço: </td><td colspan='3'>" + denuncia.endereco + "</td></tr><tr><td class='tlabel'>Data: </td><td>" + datahora.toString("dd/MM/yyyy") + "</td><td class='tlabel'>Hora: </td><td>" + datahora.toString("HH:mm:ss") + "</td></tr>";
+                if (denuncia.orgaoResponsavel) {
+                  contentString += "<tr><td class='tlabel'>Órgão: </td><td><a href='" + denuncia.orgaoResponsavel.site + "' target='_blank'>" + denuncia.orgaoResponsavel.sigla + "</a></td><td class='tlabel'>Protocolo: </td><td>" + denuncia.protocolo + "</td></tr>";
+                }
+                contentString += "</table></div></div>";
+                var infowindow = new google.maps.InfoWindow({
+                  content: contentString,
+                  maxWidth: 300
+                });
+                google.maps.event.addListener(marker, "click", function() {
+                  infowindow.open(map, marker);
+                });
+                bounds.extend(latLng);
+                if (!lDivs[denuncia.tipo.ponto]) {
+                  var div = document.createElement("div");
+                  div.innerHTML = "<table><tr><td><img src='" + denuncia.tipo.ponto + "' height='16' width='16'></td><td>" + denuncia.tipo.nome + "</td></tr></table>";
+                  $("#legend")[0].appendChild(div);
+                  lDivs[denuncia.tipo.ponto] = div;
+                }
+              });
+              if (markers.length == 1) {
+                map.setCenter(markers[0].getPosition());
+                map.setZoom(12);
+              } else {
+                map.fitBounds(bounds);
+              }
+              var event = jQuery.Event("click");
+              $("#dropdownButton2").trigger(event);
+            } else {
+              map.setCenter(brazilLatLng);
+              map.setZoom(4);
+            }
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].clear();
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push($("#legend")[0]);
+          });
+          return false;
+        });
+      });
+    </script>
+  </body>
+</html>

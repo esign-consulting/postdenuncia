@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+    	<property name="current_session_context_class">thread</property>
+    	<property name="show_sql">false</property>
+    	<property name="cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory</property>
+    	<property name="cache.use_second_level_cache">true</property>
+    	<property name="cache.use_query_cache">true</property>
+    	
+        <property name="connection.datasource">java:comp/env/jdbc/postdenunciaDS</property>
+        <!-- property name="connection.driver_class">org.gjt.mm.mysql.Driver</property>
+        <property name="connection.url">jdbc:mysql://localhost/postdenuncia_db</property>
+        <property name="connection.username">root</property>
+        <property name="connection.password"></property-->
+        <property name="dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
+        
+        <mapping class="br.com.esign.postdenuncia.model.Cidade"/>
+        <mapping class="br.com.esign.postdenuncia.model.Denuncia"/>
+        <mapping class="br.com.esign.postdenuncia.model.Denunciante"/>
+        <mapping class="br.com.esign.postdenuncia.model.EstacaoMonitoramento"/>
+        <mapping class="br.com.esign.postdenuncia.model.Estado"/>
+        <mapping class="br.com.esign.postdenuncia.model.FacebookUser"/>
+        <mapping class="br.com.esign.postdenuncia.model.GooglePlusPerson"/>
+        <mapping class="br.com.esign.postdenuncia.model.Medicao"/>
+        <mapping class="br.com.esign.postdenuncia.model.OrgaoResponsavel"/>
+        <mapping class="br.com.esign.postdenuncia.model.Poluente"/>
+        <mapping class="br.com.esign.postdenuncia.model.QualidadeAr"/>
+        <mapping class="br.com.esign.postdenuncia.model.TipoDenuncia"/>
+    </session-factory>
+</hibernate-configuration>
