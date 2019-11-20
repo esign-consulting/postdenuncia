@@ -1,2 +1,8 @@
 /nb-configuration.xml
 /src/main/webapp/META-INF/context.xml
+/target/
+.classpath
+.factorypath
+.project
+.settings/
+.vscode/
