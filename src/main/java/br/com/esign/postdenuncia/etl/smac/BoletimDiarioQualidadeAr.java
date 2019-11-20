@@ -101,7 +101,7 @@ public class BoletimDiarioQualidadeAr implements FonteMedicao {
     private class Html extends FonteHtml {
 
         public Html() throws IOException {
-            String spec = "http://smac.infoper.net/smac/boletim";
+            String spec = "http://jeap.rio.rj.gov.br/je-metinfosmac/boletim";
             String html = get(spec, null, "UTF-8").getHtmlResult();
 
             this.html = html;
