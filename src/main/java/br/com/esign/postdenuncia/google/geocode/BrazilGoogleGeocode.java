@@ -10,13 +10,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class BrazilGoogleGeocode extends GoogleGeocode {
 
+    private final static String apiKey = System.getProperty("google.geocode.api.key");
+
     public BrazilGoogleGeocode(String address) {
-        super(address);
+        super(apiKey, address);
         setLanguage(GoogleGeocodeLanguage.PORTUGUESE_BRAZIL);
     }
 
     public BrazilGoogleGeocode(String lat, String lng) {
-        super(lat, lng);
+        super(apiKey, lat, lng);
         setLanguage(GoogleGeocodeLanguage.PORTUGUESE_BRAZIL);
     }
 
