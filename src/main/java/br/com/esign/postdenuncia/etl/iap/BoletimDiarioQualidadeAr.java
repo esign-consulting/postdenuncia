@@ -8,7 +8,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.util.PDFTextStripper;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -154,7 +154,7 @@ public class BoletimDiarioQualidadeAr implements FonteMedicao {
         public String obterDadosEstacao(String estacao_ar, String mes_ar, String ano_ar) throws IOException {
             URL url = new URL("http://www.iap.pr.gov.br/arquivos/File/Monitoramento/qualidade_do_ar_laptec/IQA_" + estacao_ar + "_" + mes_ar + "_" + ano_ar + ".pdf");
             String dadosEstacao;
-            try (PDDocument doc = PDDocument.load(url)) {
+            try (PDDocument doc = PDDocument.load(url.openStream())) {
                 PDFTextStripper pdf = new PDFTextStripper();
                 dadosEstacao = pdf.getText(doc);
             }
