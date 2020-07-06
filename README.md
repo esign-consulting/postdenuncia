@@ -1,6 +1,6 @@
 # Post Denúncia
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build status](https://github.com/esign-consulting/postdenuncia/workflows/Java%20CI/badge.svg)](https://github.com/esign-consulting/postdenuncia/actions?query=workflow%3A%22Java+CI%22)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build status](https://github.com/esign-consulting/postdenuncia/workflows/Java%20CI/badge.svg)](https://github.com/esign-consulting/postdenuncia/actions?query=workflow%3A%22Java+CI%22) [![Known Vulnerabilities](https://snyk.io/test/github/esign-consulting/postdenuncia/badge.svg)](https://snyk.io/test/github/esign-consulting/postdenuncia)
 
 - [3 anos de Post Denúncia](http://www.esign.com.br/2016/05/20/3-anos-de-post-denuncia)
 - [Mapa brasileiro de qualidade do ar](http://www.esign.com.br/2016/05/25/mapa-brasileiro-de-qualidade-do-ar)
