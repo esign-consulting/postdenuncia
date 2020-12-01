@@ -36,7 +36,6 @@ import br.com.esign.postdenuncia.model.TipoDenuncia;
 import br.com.esign.postdenuncia.model.TipoDevice;
 import br.com.esign.postdenuncia.util.MessagesBundle;
 
-import com.google.common.net.HttpHeaders;
 import com.googlecode.genericdao.search.Search;
 
 /**
@@ -115,7 +114,7 @@ public class NovaDenuncia extends GenericServlet {
 				throw new ServletException(MessagesBundle.FOTO_OBRIGATORIA);
 			}
 			
-			String tipoDevice = request.getHeader(HttpHeaders.USER_AGENT);
+			String tipoDevice = request.getHeader("User-Agent");
 			if (tipoDevice != null && !tipoDevice.isEmpty() && tipoDevice.indexOf(TipoDevice.ANDROID) != -1) {
 				denuncia.setTipoDeviceOrigem(TipoDevice.ANDROID);
 			} else {
